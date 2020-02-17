@@ -49,7 +49,7 @@ def show_melon(melon_id):
     """
 
     melon = melons.get_by_id(melon_id)
-    print(melon)
+    
     return render_template("melon_details.html",
                            display_melon=melon)
 
@@ -78,13 +78,23 @@ def show_shopping_cart():
     melon_dict = session['cart']
     melon_list = []
     total_cost = 0
+    # for each item in dictionary 
     for melon in melon_dict:
-        
-        total_cost = melon_dict[melon.price] * melon_dict[melon]
+        # retrive melon obj using get_by_id
+        melon_obj = melons.get_by_id(melon)
+        # compute total cost for each melon 
+        melon_total_cost = melon_dict[melon] * melons.get_by_id(melon).price
+        # add melon cost to total_cost
+        total_cost += melon_total_cost
+        # add quantity to obj
+        melons.get_by_id(melon).quantity =  melon_dict[melon]
+        # add total cost of obj
+        melons.get_by_id(melon).melon_total_cost = melon_total_cost 
+        # add melon object to list 
+        melon_list.append(melons.get_by_id(melon))
 
-
-    print("/cart")
-    return render_template("cart.html")
+    
+    return render_template("cart.html", melon_list=melon_list, total_cost=format(total_cost, '.2f'))
 
 
 @app.route("/add_to_cart/<melon_id>")
@@ -108,12 +118,14 @@ def add_to_cart(melon_id):
 
     if 'cart' not in session:
         session['cart'] = {}
+        session['cart'][melon_id] = 1
     else:
         if melon_id not in session['cart']:
             session['cart'][melon_id] = 1
         else:
             session['cart'][melon_id] += 1
 
+    
     return redirect("/cart")
 
 
